@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Syahriah (GitHub Database)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #059669; --primary-hover: #047857; --primary-light: #d1fae5;
+            --secondary-color: #64748b; --success-color: #10b981; --danger-color: #ef4444;
+            --bg-color: #f0fdf4; --card-bg: #ffffff; --text-main: #064e3b; --text-muted: #64748b;
+            --border-color: #e2e8f0; --sidebar-width: 260px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; min-height: 100vh; }
+        
+        aside { width: var(--sidebar-width); background-color: var(--card-bg); border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; transition: transform 0.3s ease; }
+        .brand { padding: 1.5rem; color: var(--primary-color); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--bg-color); }
+        .brand i { font-size: 1.8rem; }
+        .brand-text h1 { font-size: 1.2rem; font-weight: 800; line-height: 1.2; color: var(--primary-color); }
+        .brand-text p { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+        .nav-menu { list-style: none; padding: 1.5rem 1rem; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 0.8rem 1rem; border-radius: 8px; color: var(--text-muted); text-decoration: none; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: var(--primary-light); color: var(--primary-color); font-weight: 600; }
+        .nav-link i { width: 24px; text-align: center; }
+
+        main { flex: 1; margin-left: var(--sidebar-width); padding: 2rem; width: calc(100% - var(--sidebar-width)); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
+
+        .card { background: var(--card-bg); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; border: 1px solid #f0fdf4; }
+        
+        .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-save { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; width: 100%; padding: 1rem; font-size: 1rem; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); border: none; }
+        .btn-save:hover { box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4); transform: translateY(-2px); }
+        .btn-secondary { background-color: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        input:not(.month-checkbox), select { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s; background: #fff; color: var(--text-main); }
+        input:disabled, select:disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+        input:not(.month-checkbox):focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--primary-light); color: var(--primary-dark); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; }
+        tr:hover { background-color: #f0fdf4; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+
+        .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 0.5rem; }
+        .month-checkbox { display: none; }
+        .month-label { display: flex; align-items: center; justify-content: center; padding: 10px 5px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; color: var(--text-muted); background: white; text-align: center; font-weight: 500; }
+        .month-label:hover { background-color: #f0fdf4; border-color: var(--primary-color); }
+        .month-checkbox:checked + .month-label { background-color: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3); font-weight: 700; }
+        .month-checkbox:disabled + .month-label { background-color: #e2e8f0; color: #94a3b8; cursor: not-allowed; text-decoration: line-through; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .bg-green { background: #dcfce7; color: var(--primary-color); } 
+        .bg-teal { background: #ccfbf1; color: #0f766e; } 
+        .bg-lime { background: #ecfccb; color: #65a30d; } 
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6, 78, 59, 0.4); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(2px); }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; transform: scale(0.95); transition: transform 0.3s; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f0fdf4; padding-bottom: 1rem; }
+        .close-modal { cursor: pointer; font-size: 1.2rem; color: var(--text-muted); }
+        
+        .hidden { display: none !important; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 700; }
+        
+        .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; padding: 1rem 1.5rem; border-radius: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 12px; min-width: 300px; border-left: 5px solid var(--primary-color); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            aside { transform: translateX(-100%); } aside.open { transform: translateX(0); }
+            main { margin-left: 0; width: 100%; padding: 1rem; }
+            .mobile-toggle { display: block; color: var(--primary-color); }
+        }
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; margin-right: 1rem; }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <div class="brand">
+            <i class="fab fa-github"></i>
+            <div class="brand-text">
+                <h1>Portal Syahriah</h1>
+                <p>Ula Roudlotuth Tholibin</p>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="#" class="nav-link active" onclick="switchPage('dashboard')"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="#" class="nav-link" onclick="switchPage('payment')"><i class="fas fa-money-bill-wave"></i> Input Pembayaran</a></li>
+            <li class="nav-item"><a href="#" class="nav-link" onclick="switchPage('reports')"><i class="fas fa-chart-line"></i> Laporan Keuangan</a></li>
+            <li class="nav-item"><a href="#" class="nav-link" onclick="switchPage('students')"><i class="fas fa-users"></i> Data Santri</a></li>
+        </ul>
+    </aside>
+
+    <main>
+        <header>
+            <div style="display: flex; align-items: center;">
+                <div class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+                <h1 id="page-title" style="color: var(--primary-color);">Dashboard</h1>
+            </div>
+            <div class="user-profile">
+                <span style="color: var(--text-muted); font-weight: 500;">Admin (GitHub DB)</span>
+                <i class="fab fa-github" style="margin-left: 8px; font-size: 1.5rem; color: var(--primary-color);"></i>
+            </div>
+        </header>
+
+        <!-- PAGE: DASHBOARD -->
+        <section id="dashboard-page" class="page-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon bg-green"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-info">
+                        <h3 style="color: var(--text-muted); font-size: 0.9rem;">Pemasukan Tahun Ini</h3>
+                        <p id="month-income" style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">Rp 0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-teal"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <h3 style="color: var(--text-muted); font-size: 0.9rem;">Transaksi Berhasil</h3>
+                        <p id="total-transactions" style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-lime"><i class="fas fa-user-graduate"></i></div>
+                    <div class="stat-info">
+                        <h3 style="color: var(--text-muted); font-size: 0.9rem;">Total Santri</h3>
+                        <p id="total-students-dash" style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; display:inline-block;"><i class="fas fa-history"></i> Transaksi Terakhir</h3>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Nama Santri</th><th>Kelas</th><th>Bulan</th><th>Nominal</th></tr></thead>
+                        <tbody id="recent-transactions-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: INPUT PEMBAYARAN -->
+        <section id="payment-page" class="page-section hidden">
+            <div class="card" style="max-width: 650px; margin: 0 auto; border-top: 5px solid var(--primary-color);">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--primary-dark);">Input Pembayaran Syahriah</h2>
+                    <p style="color: var(--text-muted);">Data disimpan di Repository GitHub.</p>
+                </div>
+                
+                <form id="payment-form" onsubmit="handlePaymentSubmit(event)">
+                    <div class="form-group">
+                        <label for="payment-class-filter"><i class="fas fa-chalkboard-teacher"></i> Pilih Kelas</label>
+                        <select id="payment-class-filter" required onchange="filterStudentsByClass()">
+                            <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student-select"><i class="fas fa-user-graduate"></i> Pilih Santri</label>
+                        <select id="student-select" required disabled onchange="updateChecklistStatus()">
+                            <option value="">-- Pilih Santri --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="background: #f0fdf4; padding: 1rem; border-radius: 8px; border: 1px dashed var(--primary-color);">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">Kelas:</span>
+                            <span id="display-class" style="font-weight: 600; color: var(--text-main);">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 5px;">
+                            <span style="color: var(--text-muted);">Nominal / Bulan:</span>
+                            <span style="font-weight: 600; color: var(--primary-color);">Rp 35.000</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-check"></i> Pilih Bulan Pembayaran</label>
+                        <div id="month-checkbox-container" class="month-grid"></div>
+                        <small style="color: var(--text-muted); display: block; margin-top: 8px; font-style: italic;">*Centang bulan yang ingin dibayar. Bulan yang sudah lunas akan dicoret.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment-date"><i class="fas fa-calendar-day"></i> Tanggal Bayar</label>
+                        <input type="date" id="payment-date" required>
+                    </div>
+
+                    <div class="form-group" id="total-preview" style="display:none; background: #d1fae5; padding: 10px; border-radius: 8px; text-align: center; color: var(--primary-dark); font-weight: 600; border: 1px solid var(--primary-color);">
+                        Total Pembayaran: <span id="total-amount-display">Rp 0</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-save" id="submit-btn">
+                        <i class="fas fa-check-circle"></i> Proses Pembayaran Sekarang
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- PAGE: DATA SISWA -->
+        <section id="students-page" class="page-section hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--primary-dark);"><i class="fas fa-users"></i> Data Santri (GitHub)</h3>
+                    
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="openModal('modal-add-student')"><i class="fas fa-plus"></i> Tambah Satu</button>
+                        <button class="btn btn-secondary" onclick="downloadTemplate()"><i class="fas fa-download"></i> Template CSV</button>
+                        <label class="btn btn-secondary" style="cursor: pointer;">
+                            <i class="fas fa-upload"></i> Upload CSV
+                            <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="handleCsvUpload(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>NIS</th><th>Nama Lengkap</th><th>Kelas</th><th>Aksi</th></tr></thead>
+                        <tbody id="students-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: LAPORAN -->
+        <section id="reports-page" class="page-section hidden">
+            <div class="card no-print">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-main);"><i class="fas fa-filter"></i> Filter Laporan</h3>
+                <div class="filters" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+                    <div class="form-group" style="margin-bottom:0"><label>Kelas</label>
+                        <select id="filter-class" onchange="renderReports()">
+                            <option value="all">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0"><label>Bulan</label>
+                        <select id="filter-month" onchange="renderReports()">
+                            <option value="all">Semua Bulan</option>
+                            <option value="Dzul Qo'dah">Dzul Qo'dah</option>
+                            <option value="Dzul Hijjah">Dzul Hijjah</option>
+                            <option value="Muharom">Muharom</option>
+                            <option value="Safar">Safar</option>
+                            <option value="Rob. Awal">Rob. Awal</option>
+                            <option value="Rob. Tsani">Rob. Tsani</option>
+                            <option value="Jum. Ula">Jum. Ula</option>
+                            <option value="Jum. Tsani">Jum. Tsani</option>
+                            <option value="Rajab">Rajab</option>
+                            <option value="Sya'ban">Sya'ban</option>
+                            <option value="Ramadhan">Ramadhan</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0"><label>Tahun</label>
+                        <select id="filter-year" onchange="renderReports()">
+                            <option value="all">Semua Tahun</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0"><label>Cari Nama</label><input type="text" id="filter-search" placeholder="Ketik nama..." oninput="renderReports()"></div>
+                    <div style="margin-bottom:0"><button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Cetak Laporan</button></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="print-only"><h2>Laporan Keuangan Syahriah</h2><p>Dicetak pada: <span id="print-date"></span></p></div>
+                <div class="table-container">
+                    <table id="report-table">
+                        <thead><tr><th style="width: 50px;">No</th><th>Tanggal</th><th>Nama Santri</th><th>Kelas</th><th>Bulan</th><th>Tahun</th><th class="text-right">Nominal</th></tr></thead>
+                        <tbody id="report-table-body"></tbody>
+                        <tfoot><tr style="background-color: #ecfccb; font-weight: bold;"><td colspan="6" class="text-right">Total Pemasukan:</td><td class="text-right text-primary" id="report-total" style="color: var(--primary-color) !important;">Rp 0</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: ADD STUDENT -->
+    <div id="modal-add-student" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="color: var(--primary-color);">Tambah Data Santri</h3>
+                <span class="close-modal" onclick="closeModal('modal-add-student')"><i class="fas fa-times"></i></span>
+            </div>
+            <form onsubmit="handleManualStudentSubmit(event)">
+                <div class="form-group"><label>NIS</label><input type="text" id="input-nis" required placeholder="Contoh: 1001"></div>
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="input-name" required placeholder="Contoh: Ahmad Fulan"></div>
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <select id="input-class" required><option value="">Pilih Kelas</option></select>
+                </div>
+                <div style="text-align: right; margin-top: 1.5rem;"><button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-student')">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // --- KONFIGURASI GITHUB (WAJIB DIUBAH) ---
+        const GITHUB_CONFIG = {
+            owner: 'USERNAME_GITHUB_ANDA',      // Ganti dengan username GitHub
+            repo: 'db-syahriah',                // Nama repository yang dibuat
+            path: 'db.json',                   // Nama file database
+            token: 'ISI_TOKEN_PAT_DISINI'      // Paste Token Personal Access Token di sini (ghp_xxxx...)
+        };
+
+        // --- DATA & STATE ---
+        let students = [];
+        let transactions = [];
+        let currentFileSha = null; // Penting untuk update file di GitHub
+
+        const hijriMonths = [
+            "Dzul Qo'dah", "Dzul Hijjah", "Muharom", "Safar", 
+            "Rob. Awal", "Rob. Tsani", "Jum. Ula", "Jum. Tsani", 
+            "Rajab", "Sya'ban", "Ramadhan", "Syawal"
+        ];
+
+        // --- FUNGSI UTAMA GITHUB ---
+
+        // 1. Baca Data dari GitHub
+        async function loadDataFromGitHub() {
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_CONFIG.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if(!response.ok) throw new Error("Gagal mengambil data dari GitHub");
+                
+                const data = await response.json();
+                currentFileSha = data.sha; // Simpan SHA untuk update selanjutnya
+                
+                // Decode Base64 content
+                const content = atob(data.content);
+                const parsedData = JSON.parse(content);
+
+                students = parsedData.students || [];
+                transactions = parsedData.transactions || [];
+
+                updateUI();
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal memuat data. Cek koneksi internet atau config GitHub.", "error");
+            }
+        }
+
+        // 2. Tulis Data ke GitHub (Push)
+        async function saveDataToGitHub() {
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+            
+            const dataToSave = {
+                students: students,
+                transactions: transactions
+            };
+
+            // Convert JSON to Base64
+            const contentBase64 = btoa(JSON.stringify(dataToSave, null, 2));
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: "Update database via Portal Web",
+                        content: contentBase64,
+                        sha: currentFileSha // SHA file saat ini WAJIB dikirim
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.content && result.content.sha) {
+                    currentFileSha = result.content.sha; // Update SHA baru
+                    console.log("Data tersimpan di GitHub");
+                    return true;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menyimpan ke GitHub (Conflict Error? Coba Reload).", "error");
+                return false;
+            }
+        }
+
+        // --- FUNGSI UI & LOGIKA ---
+        function updateUI() {
+            updateDashboard();
+            updateClassOptions();
+            updateYearOptions();
+            renderStudentsList();
+            renderReports();
+        }
+
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const color = type === 'success' ? 'var(--primary-color)' : 'var(--danger-color)';
+            const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+            toast.style.borderLeftColor = color;
+            toast.innerHTML = `<i class="fas fa-${icon}" style="color: ${color}; font-size: 1.2rem;"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        function updateClassOptions() {
+            const uniqueClasses = [...new Set(students.map(s => s.class))].sort();
+            const targetIds = ['payment-class-filter', 'filter-class', 'input-class'];
+            targetIds.forEach(id => {
+                const selectElement = document.getElementById(id);
+                if (!selectElement) return;
+                const currentVal = selectElement.value;
+                let defaultOption = "";
+                if (id === 'payment-class-filter') defaultOption = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+                else if (id === 'filter-class') defaultOption = '<option value="all">Semua Kelas</option>';
+                else if (id === 'input-class') defaultOption = '<option value="">Pilih Kelas</option>';
+                selectElement.innerHTML = defaultOption;
+                uniqueClasses.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls; option.text = cls;
+                    selectElement.appendChild(option);
+                });
+                if (uniqueClasses.includes(currentVal)) selectElement.value = currentVal;
+            });
+        }
+
+        function updateYearOptions() {
+            const uniqueYears = [...new Set(transactions.map(t => t.year))].sort((a, b) => b - a); 
+            const selectElement = document.getElementById('filter-year');
+            if (!selectElement) return;
+            const currentVal = selectElement.value;
+            selectElement.innerHTML = '<option value="all">Semua Tahun</option>';
+            uniqueYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year; option.text = year;
+                selectElement.appendChild(option);
+            });
+            if (uniqueYears.includes(currentVal)) selectElement.value = currentVal;
+        }
+
+        function updateDashboard() {
+            const currentYear = new Date().getFullYear().toString();
+            const currentYearTransactions = transactions.filter(t => t.year === currentYear);
+            const totalIncome = currentYearTransactions.reduce((sum, t) => sum + t.amount, 0);
+            
+            document.getElementById('month-income').innerText = formatRupiah(totalIncome);
+            document.getElementById('total-transactions').innerText = currentYearTransactions.length;
+            document.getElementById('total-students-dash').innerText = students.length;
+
+            const recentBody = document.getElementById('recent-transactions-table');
+            recentBody.innerHTML = '';
+            const sortedTrans = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            
+            if (sortedTrans.length === 0) {
+                recentBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Belum ada transaksi.</td></tr>';
+            } else {
+                sortedTrans.forEach(t => {
+                    recentBody.innerHTML += `
+                        <tr>
+                            <td>${t.date}</td>
+                            <td>${t.name}</td>
+                            <td>${t.class}</td>
+                            <td>${t.month}</td>
+                            <td class="font-bold text-primary">${formatRupiah(t.amount)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(pageId + '-page').classList.remove('hidden');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            const titles = { 'dashboard': 'Dashboard', 'payment': 'Input Pembayaran', 'reports': 'Laporan Keuangan', 'students': 'Data Santri' };
+            document.getElementById('page-title').innerText = titles[pageId];
+            if(pageId === 'dashboard') updateDashboard();
+            if(pageId === 'payment') { updateClassOptions(); initPaymentPage(); }
+            if(pageId === 'reports') { updateClassOptions(); updateYearOptions(); renderReports(); }
+            if(pageId === 'students') renderStudentsList();
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'modal-add-student') updateClassOptions(); 
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // --- AKSI DATA ---
+
+        async function handleManualStudentSubmit(e) {
+            e.preventDefault();
+            const nis = document.getElementById('input-nis').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const className = document.getElementById('input-class').value;
+
+            if (students.some(s => s.nis === nis)) { showToast('NIS sudah terdaftar!', 'error'); return; }
+
+            // Update Local
+            students.push({ id: Date.now(), nis: nis, name: name, class: className });
+            
+            // Simpan ke GitHub
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Menyimpan ke GitHub..."; btn.disabled = true;
+
+            const success = await saveDataToGitHub();
+            
+            if(success) {
+                showToast('Data tersimpan di GitHub');
+                closeModal('modal-add-student');
+                e.target.reset();
+                updateUI();
+            } else {
+                // Rollback local if failed
+                students.pop(); 
+            }
+
+            btn.innerText = originalText; btn.disabled = false;
+        }
+
+        function downloadTemplate() {
+            const csvContent = "data:text/csv;charset=utf-8," + "NIS,Nama Lengkap,Kelas\n1005,Contoh Santri 1,X-A\n1006,Contoh Santri 2,XI-IPA";
+            const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", "template_santri.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        async function handleCsvUpload(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n');
+                let count = 0;
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i].trim(); if (!row) continue;
+                    const cols = row.split(',');
+                    if (cols.length >= 3) {
+                        const nis = cols[0].trim().replace(/"/g, '');
+                        const name = cols[1].trim().replace(/"/g, '');
+                        const cls = cols[2].trim().replace(/"/g, '');
+                        if(nis && name && cls && !students.some(s => s.nis === nis)) {
+                            students.push({ id: Date.now() + i, nis, name, class: cls });
+                            count++;
+                        }
+                    }
+                }
+
+                if(count > 0) {
+                    showToast(`Mengupload ${count} data...`);
+                    const success = await saveDataToGitHub();
+                    if(success) {
+                        showToast('Upload Berhasil');
+                        updateUI();
+                    } else {
+                        // Rollback
+                        students = students.slice(0, -count);
+                    }
+                } else {
+                    showToast('Tidak ada data baru.', 'error');
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function renderStudentsList() {
+            const tbody = document.getElementById('students-table-body'); tbody.innerHTML = '';
+            if(students.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem;">Belum ada data.</td></tr>'; return; }
+            students.forEach(s => {
+                tbody.innerHTML += `<tr><td>${s.nis}</td><td>${s.name}</td><td><span class="status-badge" style="background:#f0fdf4; color:var(--primary-color); border:1px solid #d1fae5;">${s.class}</span></td><td><button class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.8rem;" onclick="deleteStudent(${s.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+        }
+
+        async function deleteStudent(id) {
+            if(confirm('Hapus santri ini?')) {
+                students = students.filter(s => s.id !== id);
+                // Cascade delete transactions not implemented here for simplicity, keeping transactions but link broken is safer for simple DB
+                transactions = transactions.filter(t => t.studentId !== id); // Optional: cascade delete
+                
+                const success = await saveDataToGitHub();
+                if(success) {
+                    showToast('Data dihapus');
+                    updateUI();
+                } else {
+                    // Reload needed if failed to sync
+                    loadDataFromGitHub();
+                }
+            }
+        }
+
+        // --- TRANSAKSI ---
+        function renderMonthCheckboxes() {
+            const container = document.getElementById('month-checkbox-container');
+            container.innerHTML = '';
+            hijriMonths.forEach(m => {
+                const safeId = m.replace(/[^a-zA-Z]/g, '');
+                const html = `<input type="checkbox" id="${safeId}" value="${m}" class="month-checkbox" name="payment-months" onchange="calculateTotal()"><label for="${safeId}" class="month-label">${m}</label>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function initPaymentPage() {
+            document.getElementById('payment-form').reset();
+            document.getElementById('student-select').disabled = true;
+            document.getElementById('student-select').innerHTML = '<option value="">-- Pilih Santri --</option>';
+            document.getElementById('display-class').innerText = '-';
+            document.getElementById('payment-date').valueAsDate = new Date();
+            document.getElementById('total-preview').style.display = 'none';
+            renderMonthCheckboxes(); updateClassOptions(); 
+        }
+
+        function filterStudentsByClass() {
+            const selectedClass = document.getElementById('payment-class-filter').value;
+            const studentSelect = document.getElementById('student-select');
+            const displayClass = document.getElementById('display-class');
+            studentSelect.innerHTML = '<option value="">-- Pilih Santri --</option>';
+            displayClass.innerText = '-';
+            document.querySelectorAll('.month-checkbox').forEach(cb => { cb.checked = false; cb.disabled = false; });
+            calculateTotal();
+            if (selectedClass) {
+                studentSelect.disabled = false;
+                displayClass.innerText = selectedClass;
+                students.filter(s => s.class === selectedClass).sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
+                    const option = document.createElement('option'); option.value = s.id; option.text = s.name; studentSelect.appendChild(option);
+                });
+            } else { studentSelect.disabled = true; }
+        }
+
+        function updateChecklistStatus() {
+            const studentId = document.getElementById('student-select').value;
+            const student = students.find(s => s.id == studentId);
+            const dateStr = document.getElementById('payment-date').value;
+            const year = new Date(dateStr).getFullYear().toString();
+            const checkboxes = document.querySelectorAll('.month-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false; 
+                const month = cb.value;
+                const isPaid = transactions.some(t => t.studentId == studentId && t.month === month && t.year === year);
+                cb.disabled = isPaid;
+            });
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const checked = document.querySelectorAll('.month-checkbox:checked');
+            const totalDiv = document.getElementById('total-preview');
+            const totalSpan = document.getElementById('total-amount-display');
+            if (checked.length > 0) {
+                totalDiv.style.display = 'block';
+                const total = checked.length * 35000;
+                totalSpan.innerText = formatRupiah(total);
+            } else { totalDiv.style.display = 'none'; }
+        }
+
+        async function handlePaymentSubmit(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('student-select').value;
+            const student = students.find(s => s.id == studentId);
+            const dateStr = document.getElementById('payment-date').value;
+            const year = new Date(dateStr).getFullYear().toString();
+            
+            const checkedBoxes = document.querySelectorAll('.month-checkbox:checked');
+            if (checkedBoxes.length === 0) { showToast('Pilih minimal satu bulan', 'error'); return; }
+
+            const btn = document.getElementById('submit-btn');
+            const originalBtnText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim ke GitHub...';
+            btn.disabled = true;
+
+            let successCount = 0;
+
+            checkedBoxes.forEach(cb => {
+                const month = cb.value;
+                const isPaid = transactions.some(t => t.studentId == studentId && t.month === month && t.year === year);
+                if (!isPaid) {
+                    transactions.push({ 
+                        id: Date.now() + Math.random(), 
+                        studentId: studentId, 
+                        name: student.name, // Store name directly for easier filtering
+                        class: student.class, // Store class directly
+                        date: dateStr, 
+                        month: month, 
+                        year: year, 
+                        amount: 35000 
+                    }); 
+                    successCount++;
+                }
+            });
+
+            const success = await saveDataToGitHub();
+
+            if (success) {
+                showToast(`${successCount} bulan berhasil disimpan.`);
+                updateUI(); // Update UI from local updated state
+                initPaymentPage();
+            } else {
+                // Reload if failed
+                loadDataFromGitHub();
+            }
+
+            btn.innerHTML = originalBtnText; btn.disabled = false;
+        }
+
+        function renderReports() {
+            const fClass = document.getElementById('filter-class').value;
+            const fMonth = document.getElementById('filter-month').value;
+            const fYear = document.getElementById('filter-year').value;
+            const fSearch = document.getElementById('filter-search').value.toLowerCase();
+
+            const filteredData = transactions.filter(t => {
+                const matchClass = fClass === 'all' || t.class === fClass;
+                const matchMonth = fMonth === 'all' || t.month === fMonth;
+                const matchYear = fYear === 'all' || String(t.year) === String(fYear);
+                const matchSearch = t.name.toLowerCase().includes(fSearch);
+                return matchClass && matchMonth && matchYear && matchSearch;
+            });
+
+            filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const totalAmount = filteredData.reduce((sum, t) => sum + t.amount, 0);
+
+            const tbody = document.getElementById('report-table-body');
+            tbody.innerHTML = '';
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--text-muted);">Tidak ada data.</td></tr>';
+            } else {
+                filteredData.forEach((t, index) => {
+                    tbody.innerHTML += `<tr><td>${index + 1}</td><td>${t.date}</td><td>${t.name}</td><td>${t.class}</td><td>${t.month}</td><td>${t.year}</td><td class="text-right font-bold">${formatRupiah(t.amount)}</td></tr>`;
+                });
+            }
+            document.getElementById('report-total').innerText = formatRupiah(totalAmount);
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // Init
+        loadDataFromGitHub();
+    </script>
+</body>
+</html>
